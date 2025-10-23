@@ -1,4 +1,4 @@
-﻿const channels = [
+const channels = [
     {
         id: 0,
         label: "computer",
@@ -192,9 +192,8 @@ if (
 
 const normalise = (text) => text.trim().toLowerCase();
 
-const shouldOpenInNewTab = () => !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
 const isAndroid = /Android/i.test(navigator.userAgent);
+const shouldOpenInNewTab = () => !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const toVideosUrl = (url) => {
     if (!url) {
@@ -244,7 +243,7 @@ const getChannelLinks = (channel) => {
 };
 
 const createLinkElement = (channel, entry, index, openInNewTab = shouldOpenInNewTab()) => {
-    if (!channel || !entry || !entry.url) {
+    if (!entry || !entry.url) {
         return null;
     }
 
@@ -272,19 +271,28 @@ const createLinkElement = (channel, entry, index, openInNewTab = shouldOpenInNew
 let mobileHandlersInitialized = false;
 
 const closeModal = () => {
+    if (!modal) {
+        return;
+    }
+
     modalLinks.innerHTML = "";
+
     if (typeof modal.close === "function" && modal.open) {
         modal.close();
     } else {
         modal.removeAttribute("open");
     }
+
     document.body.classList.remove("is-modal-open");
 };
 
 const openModal = (channel) => {
-    if (!channel) return;
+    if (!channel || !modal) {
+        return;
+    }
 
     modalTitle.textContent = `Channel ${channel.id}`;
+
     if (channel.label) {
         modalSubtitle.textContent = channel.label;
         modalSubtitle.hidden = false;
@@ -294,27 +302,36 @@ const openModal = (channel) => {
     }
 
     modalLinks.innerHTML = "";
+
     const links = getChannelLinks(channel);
     const fragment = document.createDocumentFragment();
     const openInNewTab = shouldOpenInNewTab();
 
-    links.forEach((entry, index) => {
-        const anchor = createLinkElement(channel, entry, index, openInNewTab);
-        if (anchor) fragment.appendChild(anchor);
-    });
+    if (links.length) {
+        links.forEach((entry, index) => {
+            const anchor = createLinkElement(channel, entry, index, openInNewTab);
+            if (anchor) {
+                fragment.appendChild(anchor);
+            }
+        });
 
-    if (!fragment.children || fragment.children.length === 0) {
-        const p = document.createElement("p");
-        p.className = "channel-modal__empty";
-        p.textContent = "No links for this channel.";
-        modalLinks.appendChild(p);
-    } else {
         modalLinks.appendChild(fragment);
+    } else {
+        const empty = document.createElement("p");
+        empty.className = "channel-modal__empty";
+        empty.textContent = "No links for this channel.";
+        modalLinks.appendChild(empty);
     }
 
+    modalLinks.scrollTop = 0;
+    modalDialog.scrollTop = 0;
+
     document.body.classList.add("is-modal-open");
+
     if (typeof modal.showModal === "function") {
-        modal.showModal();
+        if (!modal.open) {
+            modal.showModal();
+        }
     } else {
         modal.setAttribute("open", "open");
     }
@@ -337,12 +354,39 @@ const initMobileHandlers = () => {
         }
 
         event.preventDefault();
-        const intentUrl = buildIntentUrl(fallbackUrl);
-        window.location.href = intentUrl;
 
-        setTimeout(() => {
-            window.location.href = fallbackUrl;
-        }, 800);
+        const intentUrl = buildIntentUrl(fallbackUrl);
+        const fallbackDelay = 900;
+        let fallbackTimer;
+
+        const cleanUp = () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("pagehide", handlePageHide);
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "hidden") {
+                clearTimeout(fallbackTimer);
+            }
+            cleanUp();
+        };
+
+        const handlePageHide = () => {
+            clearTimeout(fallbackTimer);
+            cleanUp();
+        };
+
+        fallbackTimer = window.setTimeout(() => {
+            cleanUp();
+            if (document.visibilityState === "visible") {
+                window.location.href = fallbackUrl;
+            }
+        }, fallbackDelay);
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        window.addEventListener("pagehide", handlePageHide, { once: true });
+
+        window.location.href = intentUrl;
     });
 
     mobileHandlersInitialized = true;
@@ -397,6 +441,7 @@ const renderChannels = (items) => {
     }
 
     const fragment = document.createDocumentFragment();
+    const openInNewTab = shouldOpenInNewTab();
 
     for (const channel of items) {
         const clone = template.content.cloneNode(true);
@@ -408,63 +453,27 @@ const renderChannels = (items) => {
         const linksScroll = clone.querySelector(".links-scroll");
 
         card.id = `channel-${channel.id}`;
-    const panelId = `channel-links-${channel.id}`;
-    linksPanel.id = panelId;
-    toggleBtn.setAttribute("aria-controls", panelId);
+        const panelId = `channel-links-${channel.id}`;
+        linksPanel.id = panelId;
+        toggleBtn.setAttribute("aria-controls", panelId);
         numberEl.textContent = channel.id;
         titleEl.textContent = channel.label;
         linksScroll.innerHTML = "";
+        linksPanel.hidden = false;
 
-        let linkCount = 0;
+        const linkEntries = getChannelLinks(channel);
 
-        const multiLinks = Array.isArray(channel.links) ? channel.links : null;
-
-        if (multiLinks && multiLinks.length) {
-            const visibleCount = 5;
-            multiLinks.forEach((entry, index) => {
-                if (!entry || !entry.url) return;
-
-                const anchor = createLinkElement(channel, entry, index);
-                if (!anchor) return;
-
-                // Show only first N links; others remain scrollable inside the panel
-                if (index < visibleCount) {
-                    linksScroll.appendChild(anchor);
-                } else {
-                    // Append to the scroll area as well so it's accessible when expanded
+        if (linkEntries.length) {
+            linkEntries.forEach((entry, index) => {
+                const anchor = createLinkElement(channel, entry, index, openInNewTab);
+                if (anchor) {
                     linksScroll.appendChild(anchor);
                 }
-
-                linkCount += 1;
             });
 
-        } else if (channel.url) {
-            const finalUrl = toVideosUrl(channel.url);
-            const anchor = document.createElement("a");
-            anchor.className = "channel-link";
-            if (shouldOpenInNewTab()) {
-                anchor.target = "_blank";
-                anchor.rel = "noopener";
-            }
-            anchor.textContent = "Open channel";
-            anchor.href = finalUrl;
-            anchor.dataset.fallbackUrl = finalUrl;
-            anchor.setAttribute("aria-label", `Open ${channel.label} on YouTube`);
-            linksScroll.appendChild(anchor);
-            linkCount = 1;
-        } else {
-            const placeholder = document.createElement("span");
-            placeholder.className = "channel-link is-empty";
-            placeholder.textContent = "Link coming soon";
-            linksScroll.appendChild(placeholder);
-            linkCount = 0;
-        }
-
-        if (linkCount > 0) {
-            linksPanel.hidden = false;
-            card.classList.add("has-links");
-            card.classList.add("is-expanded");
+            card.classList.add("has-links", "is-expanded");
             card.classList.remove("is-collapsed");
+
             toggleBtn.hidden = false;
             toggleBtn.textContent = "Hide links";
             toggleBtn.setAttribute("aria-expanded", "true");
@@ -480,21 +489,31 @@ const renderChannels = (items) => {
                 }
             });
 
-            // clicking the number opens the modal as well
-            const numberButton = numberEl;
-            numberButton.style.cursor = "pointer";
-            numberButton.addEventListener("click", () => openModal(channel));
+            numberEl.style.cursor = "pointer";
+            numberEl.tabIndex = 0;
+            numberEl.setAttribute("role", "button");
+            numberEl.setAttribute("aria-label", `Open channel ${channel.id} links`);
+            const openChannelModal = () => openModal(channel);
+            numberEl.addEventListener("click", openChannelModal);
+            numberEl.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openChannelModal();
+                }
+            });
 
             card.addEventListener("mouseenter", () => setActiveJump(channel.id));
             card.addEventListener("focusin", () => setActiveJump(channel.id));
         } else {
-            card.classList.remove("has-links");
-            card.classList.remove("is-expanded");
-            card.classList.remove("is-collapsed");
-            linksPanel.hidden = false;
             toggleBtn.hidden = true;
             toggleBtn.setAttribute("aria-expanded", "false");
             toggleBtn.removeAttribute("aria-controls");
+            card.classList.remove("has-links", "is-expanded", "is-collapsed");
+
+            const placeholder = document.createElement("span");
+            placeholder.className = "channel-link is-empty";
+            placeholder.textContent = "Link coming soon";
+            linksScroll.appendChild(placeholder);
         }
 
         fragment.appendChild(clone);
@@ -555,14 +574,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!link) {
             return;
         }
+
         event.preventDefault();
         const { channelId } = link.dataset;
         setActiveJump(channelId);
 
         const channel = channels.find((c) => String(c.id) === String(channelId));
-        if (!channel) return;
+        if (!channel) {
+            return;
+        }
 
-        // Open a modal with the full link list for this channel
         openModal(channel);
     });
 });
