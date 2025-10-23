@@ -68,17 +68,125 @@ main.layout {
     width: calc(100% - 2rem);
     margin: 2rem auto;
     border-radius: 12px;
-    padding: 1rem 1.25rem;
-    box-shadow: 0 2rem 3rem rgba(0,0,0,0.6);
+    padding: 1.25rem 1.5rem 1.5rem;
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 .channel-modal__links {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.65rem;
     max-height: 60vh;
     overflow: auto;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0.25rem;
+}
+
+.channel-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.channel-modal__header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.channel-modal__subtitle {
+    margin: 0.2rem 0 0;
+    color: rgba(226, 232, 240, 0.78);
+    font-size: 0.9rem;
+    text-transform: capitalize;
+}
+
+.channel-modal__close {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(15, 23, 42, 0.35);
+    color: rgba(226, 232, 240, 0.9);
+    border-radius: 999px;
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 1.3rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.channel-modal__close:hover,
+.channel-modal__close:focus-visible {
+    background: rgba(56, 139, 253, 0.25);
+    border-color: rgba(56, 139, 253, 0.45);
+    transform: translateY(-1px);
+}
+
+.channel-modal__links .channel-link {
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(17, 24, 39, 0.55);
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.channel-modal__links .channel-link:hover,
+.channel-modal__links .channel-link:focus-visible {
+    border-color: rgba(56, 139, 253, 0.6);
+    background: rgba(56, 139, 253, 0.18);
+    transform: translateX(2px);
+    color: #ffffff;
+}
+
+.channel-modal__links .channel-link::before {
+    content: "↗";
+    font-size: 0.9rem;
+    color: rgba(148, 197, 255, 0.9);
+}
+
+.channel-modal__links .channel-link:last-child {
+    margin-bottom: 0.25rem;
+}
+
+.channel-modal__empty {
+    margin: 0;
+    padding: 1rem;
+    border-radius: 0.85rem;
+    text-align: center;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px dashed rgba(148, 163, 184, 0.3);
+}
+
+.channel-modal__footer {
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.channel-modal__close-btn {
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 999px;
+    padding: 0.45rem 1.1rem;
+    font-weight: 600;
+    background: rgba(17, 24, 39, 0.6);
+    color: rgba(226, 232, 240, 0.9);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.channel-modal__close-btn:hover,
+.channel-modal__close-btn:focus-visible {
+    background: rgba(56, 139, 253, 0.2);
+    border-color: rgba(56, 139, 253, 0.55);
+    transform: translateY(-1px);
 }
 
 body.is-modal-open {
@@ -112,6 +220,7 @@ body::after {
     background: rgba(15, 23, 42, 0.8);
     border: 1px solid rgba(56, 139, 253, 0.35);
     color: rgba(226, 232, 240, 0.85);
+    z-index: 9999;
     pointer-events: none;
 }
 
@@ -388,13 +497,27 @@ body::after {
     .channel-modal__dialog {
         width: calc(100% - 1.5rem);
         margin: 1.5rem auto;
-        padding: 0.9rem 1rem;
+        padding: 1rem;
         max-height: calc(100vh - 3rem);
         overflow: hidden;
     }
 
     .channel-modal__links {
         max-height: calc(100vh - 10rem);
+    }
+
+    .channel-modal__header h2 {
+        font-size: 1.2rem;
+    }
+
+    .channel-modal__close {
+        width: 1.9rem;
+        height: 1.9rem;
+        font-size: 1.15rem;
+    }
+
+    .channel-modal__links .channel-link {
+        padding: 0.5rem 0.65rem;
     }
 }
 
