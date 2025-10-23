@@ -38,6 +38,23 @@
             </div>
         </article>
     </template>
+    <dialog id="channel-modal" class="channel-modal" aria-labelledby="channel-modal-title">
+        <article class="channel-modal__dialog">
+            <header class="channel-modal__header">
+                <div>
+                    <h2 id="channel-modal-title"></h2>
+                    <p class="channel-modal__subtitle"></p>
+                </div>
+                <button type="button" class="channel-modal__close" data-modal-close aria-label="Close">
+                    ×
+                </button>
+            </header>
+            <div class="channel-modal__links"></div>
+            <footer class="channel-modal__footer">
+                <button type="button" class="channel-modal__close-btn" data-modal-close>Close</button>
+            </footer>
+        </article>
+    </dialog>
     <script src="script.js" type="module"></script>
 </body>
 </html>

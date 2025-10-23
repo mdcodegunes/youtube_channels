@@ -168,8 +168,25 @@ const clearButton = document.querySelector("#clear-button");
 const grid = document.querySelector("#channels-grid");
 const template = document.querySelector("#channel-card-template");
 const jumpStrip = document.querySelector("#jump-strip");
+const modal = document.querySelector("#channel-modal");
+const modalDialog = modal?.querySelector(".channel-modal__dialog");
+const modalTitle = document.querySelector("#channel-modal-title");
+const modalSubtitle = modal?.querySelector(".channel-modal__subtitle");
+const modalLinks = modal?.querySelector(".channel-modal__links");
+const modalCloseButtons = modal ? modal.querySelectorAll("[data-modal-close]") : [];
 
-if (!searchInput || !clearButton || !grid || !template || !jumpStrip) {
+if (
+    !searchInput ||
+    !clearButton ||
+    !grid ||
+    !template ||
+    !jumpStrip ||
+    !modal ||
+    !modalDialog ||
+    !modalTitle ||
+    !modalSubtitle ||
+    !modalLinks
+) {
     throw new Error("Required DOM nodes are missing. Check index.html structure.");
 }
 
@@ -205,7 +222,103 @@ const buildIntentUrl = (url) => {
     return `intent://${stripped}#Intent;scheme=https;package=com.google.android.youtube;S.browser_fallback_url=${fallback};end`;
 };
 
+const getChannelLinks = (channel) => {
+    if (!channel) {
+        return [];
+    }
+
+    if (Array.isArray(channel.links) && channel.links.length) {
+        return channel.links.filter((entry) => entry && entry.url);
+    }
+
+    if (channel.url) {
+        return [
+            {
+                name: channel.label || `Channel ${channel.id}`,
+                url: channel.url
+            }
+        ];
+    }
+
+    return [];
+};
+
+const createLinkElement = (channel, entry, index, openInNewTab = shouldOpenInNewTab()) => {
+    if (!channel || !entry || !entry.url) {
+        return null;
+    }
+
+    const anchor = document.createElement("a");
+    anchor.className = "channel-link";
+
+    const finalUrl = toVideosUrl(entry.url);
+    const label = (entry.name || channel.label || `Channel ${channel.id}`).trim();
+
+    anchor.href = finalUrl;
+    anchor.dataset.fallbackUrl = finalUrl;
+    anchor.dataset.channelId = String(channel.id);
+    anchor.dataset.linkIndex = String(index);
+    anchor.textContent = label;
+    anchor.setAttribute("aria-label", `Open ${label} on YouTube`);
+
+    if (openInNewTab) {
+        anchor.target = "_blank";
+        anchor.rel = "noopener";
+    }
+
+    return anchor;
+};
+
 let mobileHandlersInitialized = false;
+
+const closeModal = () => {
+    modalLinks.innerHTML = "";
+    if (typeof modal.close === "function" && modal.open) {
+        modal.close();
+    } else {
+        modal.removeAttribute("open");
+    }
+    document.body.classList.remove("is-modal-open");
+};
+
+const openModal = (channel) => {
+    if (!channel) return;
+
+    modalTitle.textContent = `Channel ${channel.id}`;
+    if (channel.label) {
+        modalSubtitle.textContent = channel.label;
+        modalSubtitle.hidden = false;
+    } else {
+        modalSubtitle.textContent = "";
+        modalSubtitle.hidden = true;
+    }
+
+    modalLinks.innerHTML = "";
+    const links = getChannelLinks(channel);
+    const fragment = document.createDocumentFragment();
+    const openInNewTab = shouldOpenInNewTab();
+
+    links.forEach((entry, index) => {
+        const anchor = createLinkElement(channel, entry, index, openInNewTab);
+        if (anchor) fragment.appendChild(anchor);
+    });
+
+    if (!fragment.children || fragment.children.length === 0) {
+        const p = document.createElement("p");
+        p.className = "channel-modal__empty";
+        p.textContent = "No links for this channel.";
+        modalLinks.appendChild(p);
+    } else {
+        modalLinks.appendChild(fragment);
+    }
+
+    document.body.classList.add("is-modal-open");
+    if (typeof modal.showModal === "function") {
+        modal.showModal();
+    } else {
+        modal.setAttribute("open", "open");
+    }
+};
 
 const initMobileHandlers = () => {
     if (!isAndroid || mobileHandlersInitialized) {
@@ -307,30 +420,21 @@ const renderChannels = (items) => {
         const multiLinks = Array.isArray(channel.links) ? channel.links : null;
 
         if (multiLinks && multiLinks.length) {
+            const visibleCount = 5;
             multiLinks.forEach((entry, index) => {
-                if (!entry || !entry.url) {
-                    return;
-                }
+                if (!entry || !entry.url) return;
 
-                const anchor = document.createElement("a");
-                anchor.className = "channel-link";
-                if (shouldOpenInNewTab()) {
-                    anchor.target = "_blank";
-                    anchor.rel = "noopener";
+                const anchor = createLinkElement(channel, entry, index);
+                if (!anchor) return;
+
+                // Show only first N links; others remain scrollable inside the panel
+                if (index < visibleCount) {
+                    linksScroll.appendChild(anchor);
                 } else {
-                    anchor.removeAttribute("target");
-                    anchor.removeAttribute("rel");
+                    // Append to the scroll area as well so it's accessible when expanded
+                    linksScroll.appendChild(anchor);
                 }
-                anchor.textContent = entry.name || `Channel ${index + 1}`;
-                const finalUrl = toVideosUrl(entry.url);
-                anchor.href = finalUrl;
-                anchor.dataset.fallbackUrl = finalUrl;
-                anchor.setAttribute(
-                    "aria-label",
-                    `Open ${(entry.name || channel.label).trim()} on YouTube`
-                );
 
-                linksScroll.appendChild(anchor);
                 linkCount += 1;
             });
 
@@ -375,6 +479,11 @@ const renderChannels = (items) => {
                     setActiveJump(channel.id);
                 }
             });
+
+            // clicking the number opens the modal as well
+            const numberButton = numberEl;
+            numberButton.style.cursor = "pointer";
+            numberButton.addEventListener("click", () => openModal(channel));
 
             card.addEventListener("mouseenter", () => setActiveJump(channel.id));
             card.addEventListener("focusin", () => setActiveJump(channel.id));
@@ -433,17 +542,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const { channelId } = link.dataset;
         setActiveJump(channelId);
 
-        const card = document.getElementById(`channel-${channelId}`);
-        if (!card) {
-            return;
-        }
+        const channel = channels.find((c) => String(c.id) === String(channelId));
+        if (!channel) return;
 
-        card.scrollIntoView({ behavior: "smooth", block: "start" });
-
-        const toggle = card.querySelector(".toggle-links");
-        if (toggle && !toggle.hidden && card.classList.contains("is-collapsed")) {
-            toggle.click();
-        }
+        // Open a modal with the full link list for this channel
+        openModal(channel);
     });
 });
 
