@@ -465,6 +465,9 @@ const updateJumpStrip = (items) => {
         link.href = `#channel-${channel.id}`;
         link.textContent = channel.id;
         link.dataset.channelId = String(channel.id);
+        if (!getChannelLinks(channel).length) {
+            link.classList.add("is-empty");
+        }
         fragment.appendChild(link);
     }
 

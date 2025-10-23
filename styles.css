@@ -43,6 +43,12 @@ main.layout {
     transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
+.jump-strip a.is-empty {
+    background: rgba(148, 163, 184, 0.32);
+    color: rgba(15, 23, 42, 0.88);
+    border-color: rgba(148, 163, 184, 0.6);
+}
+
 .jump-strip a:hover,
 .jump-strip a:focus-visible {
     background: rgba(56, 139, 253, 0.3);
@@ -50,9 +56,21 @@ main.layout {
     transform: translateY(-1px);
 }
 
+.jump-strip a.is-empty:hover,
+.jump-strip a.is-empty:focus-visible {
+    background: rgba(148, 163, 184, 0.45);
+    border-color: rgba(148, 163, 184, 0.7);
+}
+
 .jump-strip a.is-active {
     background: rgba(56, 139, 253, 0.45);
     border-color: rgba(56, 139, 253, 0.8);
+}
+
+.jump-strip a.is-empty.is-active {
+    background: rgba(148, 163, 184, 0.6);
+    border-color: rgba(148, 163, 184, 0.85);
+    color: rgba(15, 23, 42, 0.92);
 }
 
 /* Modal styling */
