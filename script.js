@@ -167,8 +167,9 @@ const searchInput = document.querySelector("#search-input");
 const clearButton = document.querySelector("#clear-button");
 const grid = document.querySelector("#channels-grid");
 const template = document.querySelector("#channel-card-template");
+const jumpStrip = document.querySelector("#jump-strip");
 
-if (!searchInput || !clearButton || !grid || !template) {
+if (!searchInput || !clearButton || !grid || !template || !jumpStrip) {
     throw new Error("Required DOM nodes are missing. Check index.html structure.");
 }
 
@@ -234,6 +235,43 @@ const initMobileHandlers = () => {
     mobileHandlersInitialized = true;
 };
 
+const setActiveJump = (channelId) => {
+    if (!jumpStrip.children.length) {
+        return;
+    }
+
+    for (const link of jumpStrip.querySelectorAll("a")) {
+        if (link.dataset.channelId === String(channelId)) {
+            link.classList.add("is-active");
+        } else {
+            link.classList.remove("is-active");
+        }
+    }
+};
+
+const updateJumpStrip = (items) => {
+    jumpStrip.innerHTML = "";
+
+    if (!items.length) {
+        jumpStrip.hidden = true;
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    for (const channel of items) {
+        const link = document.createElement("a");
+        link.href = `#channel-${channel.id}`;
+        link.textContent = channel.id;
+        link.dataset.channelId = String(channel.id);
+        fragment.appendChild(link);
+    }
+
+    jumpStrip.appendChild(fragment);
+    jumpStrip.hidden = false;
+    setActiveJump(items[0].id);
+};
+
 const renderChannels = (items) => {
     grid.innerHTML = "";
 
@@ -249,19 +287,26 @@ const renderChannels = (items) => {
 
     for (const channel of items) {
         const clone = template.content.cloneNode(true);
+        const card = clone.querySelector(".channel-card");
         const numberEl = clone.querySelector(".channel-number");
         const titleEl = clone.querySelector(".channel-title");
-        const linkWrapper = clone.querySelector(".channel-link-wrapper");
-        const linkEl = clone.querySelector(".channel-link");
+        const toggleBtn = clone.querySelector(".toggle-links");
+        const linksPanel = clone.querySelector(".channel-links");
+        const linksScroll = clone.querySelector(".links-scroll");
 
+        card.id = `channel-${channel.id}`;
+    const panelId = `channel-links-${channel.id}`;
+    linksPanel.id = panelId;
+    toggleBtn.setAttribute("aria-controls", panelId);
         numberEl.textContent = channel.id;
         titleEl.textContent = channel.label;
+        linksScroll.innerHTML = "";
+
+        let linkCount = 0;
 
         const multiLinks = Array.isArray(channel.links) ? channel.links : null;
 
         if (multiLinks && multiLinks.length) {
-            linkWrapper.innerHTML = "";
-
             multiLinks.forEach((entry, index) => {
                 if (!entry || !entry.url) {
                     return;
@@ -285,48 +330,69 @@ const renderChannels = (items) => {
                     `Open ${(entry.name || channel.label).trim()} on YouTube`
                 );
 
-                linkWrapper.appendChild(anchor);
+                linksScroll.appendChild(anchor);
+                linkCount += 1;
+            });
 
-                if (index < multiLinks.length - 1) {
-                    linkWrapper.appendChild(document.createElement("br"));
+        } else if (channel.url) {
+            const finalUrl = toVideosUrl(channel.url);
+            const anchor = document.createElement("a");
+            anchor.className = "channel-link";
+            if (shouldOpenInNewTab()) {
+                anchor.target = "_blank";
+                anchor.rel = "noopener";
+            }
+            anchor.textContent = "Open channel";
+            anchor.href = finalUrl;
+            anchor.dataset.fallbackUrl = finalUrl;
+            anchor.setAttribute("aria-label", `Open ${channel.label} on YouTube`);
+            linksScroll.appendChild(anchor);
+            linkCount = 1;
+        } else {
+            const placeholder = document.createElement("span");
+            placeholder.className = "channel-link is-empty";
+            placeholder.textContent = "Link coming soon";
+            linksScroll.appendChild(placeholder);
+            linkCount = 0;
+        }
+
+        if (linkCount > 0) {
+            linksPanel.hidden = true;
+            card.classList.add("has-links");
+            card.classList.add("is-collapsed");
+            card.classList.remove("is-expanded");
+            toggleBtn.hidden = false;
+            toggleBtn.textContent = "Show links";
+            toggleBtn.setAttribute("aria-expanded", "false");
+
+            toggleBtn.addEventListener("click", () => {
+                const expanded = card.classList.toggle("is-expanded");
+                card.classList.toggle("is-collapsed", !expanded);
+                linksPanel.hidden = !expanded;
+                toggleBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+                toggleBtn.textContent = expanded ? "Hide links" : "Show links";
+                if (expanded) {
+                    setActiveJump(channel.id);
                 }
             });
 
-            if (!linkWrapper.children.length) {
-                linkWrapper.appendChild(linkEl);
-                linkEl.textContent = "Link coming soon";
-                linkEl.href = "#";
-                linkEl.classList.add("is-empty");
-                linkEl.setAttribute("aria-label", `${channel.label} link coming soon`);
-            }
-        } else if (channel.url) {
-            linkEl.textContent = "Open channel";
-            const finalUrl = toVideosUrl(channel.url);
-            linkEl.href = finalUrl;
-            linkEl.dataset.fallbackUrl = finalUrl;
-            linkEl.classList.remove("is-empty");
-            linkEl.setAttribute("aria-label", `Open ${channel.label} on YouTube`);
-            if (shouldOpenInNewTab()) {
-                linkEl.target = "_blank";
-                linkEl.rel = "noopener";
-            } else {
-                linkEl.removeAttribute("target");
-                linkEl.removeAttribute("rel");
-            }
+            card.addEventListener("mouseenter", () => setActiveJump(channel.id));
+            card.addEventListener("focusin", () => setActiveJump(channel.id));
         } else {
-            linkEl.textContent = "Link coming soon";
-            linkEl.href = "#";
-            linkEl.classList.add("is-empty");
-            linkEl.setAttribute("aria-label", `${channel.label} link coming soon`);
-            linkEl.removeAttribute("target");
-            linkEl.removeAttribute("rel");
-            delete linkEl.dataset.fallbackUrl;
+            card.classList.remove("has-links");
+            card.classList.remove("is-expanded");
+            card.classList.remove("is-collapsed");
+            linksPanel.hidden = false;
+            toggleBtn.hidden = true;
+            toggleBtn.setAttribute("aria-expanded", "false");
+            toggleBtn.removeAttribute("aria-controls");
         }
 
         fragment.appendChild(clone);
     }
 
     grid.appendChild(fragment);
+    updateJumpStrip(items);
     initMobileHandlers();
 };
 
@@ -357,6 +423,28 @@ clearButton.addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", () => {
     renderChannels(channels);
     initMobileHandlers();
+
+    jumpStrip.addEventListener("click", (event) => {
+        const link = event.target.closest("a[data-channel-id]");
+        if (!link) {
+            return;
+        }
+        event.preventDefault();
+        const { channelId } = link.dataset;
+        setActiveJump(channelId);
+
+        const card = document.getElementById(`channel-${channelId}`);
+        if (!card) {
+            return;
+        }
+
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        const toggle = card.querySelector(".toggle-links");
+        if (toggle && !toggle.hidden && card.classList.contains("is-collapsed")) {
+            toggle.click();
+        }
+    });
 });
 
 export { channels, renderChannels };

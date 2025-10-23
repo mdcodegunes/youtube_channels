@@ -8,19 +8,7 @@
 </head>
 <body>
     <main class="layout">
-        <aside class="jump-panel" aria-labelledby="jump-heading">
-            <h2 id="jump-heading">Jump to ID</h2>
-            <nav aria-label="Channel number shortcuts">
-                <ul class="jump-list">
-                    <li><a href="#group-0">0-49</a></li>
-                    <li><a href="#group-50">50-99</a></li>
-                    <li><a href="#group-100">100-149</a></li>
-                    <li><a href="#group-150">150-199</a></li>
-                    <li><a href="#group-200">200-299</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <section class="content" aria-labelledby="search-heading">
+        <section class="content-area" aria-labelledby="search-heading">
             <div class="search-panel">
                 <h2 id="search-heading">Find a channel</h2>
                 <label class="search-label" for="search-input">Search by number or name</label>
@@ -29,6 +17,7 @@
                     <button id="clear-button" type="button">Clear</button>
                 </div>
             </div>
+            <nav id="jump-strip" class="jump-strip" aria-label="Jump to channel id"></nav>
             <section class="channels" aria-labelledby="channels-heading">
                 <h2 id="channels-heading">Saved channels</h2>
                 <div id="channels-grid" class="channels-grid" role="list" aria-live="polite"></div>
@@ -36,14 +25,17 @@
         </section>
     </main>
     <template id="channel-card-template">
-        <article class="channel-card" role="listitem">
+        <article class="channel-card is-collapsed" role="listitem">
             <header class="channel-header">
-                <span class="channel-number" aria-label="Channel number"></span>
-                <h3 class="channel-title"></h3>
+                <div class="channel-meta">
+                    <span class="channel-number" aria-label="Channel number"></span>
+                    <h3 class="channel-title"></h3>
+                </div>
+                <button type="button" class="toggle-links" aria-expanded="false" hidden>Show links</button>
             </header>
-            <p class="channel-link-wrapper">
-                <a class="channel-link" target="_blank" rel="noopener"></a>
-            </p>
+            <div class="channel-links" hidden>
+                <div class="links-scroll"></div>
+            </div>
         </article>
     </template>
     <script src="script.js" type="module"></script>

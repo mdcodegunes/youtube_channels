@@ -1,40 +1,88 @@
 ﻿:root {
-    color-scheme: light dark;
-    font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-    --bg: #121212;
-    --bg-alt: #1f1f1f;
-    --card-bg: #1b1b1b;
-    --border: #2d2d2d;
-    --text: #f2f2f2;
-    --muted: #b0b0b0;
-    --accent: #ffb300;
-}
-
-@media (prefers-color-scheme: light) {
-    :root {
-        --bg: #fdfdfd;
-        --bg-alt: #ffffff;
-        --card-bg: #ffffff;
-        --border: #dcdcdc;
-        --text: #1a1a1a;
-        --muted: #4f4f4f;
-        --accent: #f58025;
+    main.layout {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 3rem;
     }
-}
 
-* {
-    box-sizing: border-box;
-}
+    .content-area {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
 
-body {
+    .jump-strip {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding: 0.5rem 0.25rem;
+        scrollbar-width: thin;
+    }
+
+    .jump-strip::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .jump-strip::-webkit-scrollbar-thumb {
+        background: rgba(240, 246, 252, 0.2);
+        border-radius: 999px;
+    }
+
+    .jump-strip a {
+        min-width: 44px;
+        padding: 0.5rem 0.75rem;
+        border-radius: 999px;
+        text-align: center;
+        background: rgba(56, 139, 253, 0.12);
+        color: #e6edf3;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid transparent;
+        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .jump-strip a:hover,
+    .jump-strip a:focus-visible {
+        background: rgba(56, 139, 253, 0.3);
+        border-color: rgba(56, 139, 253, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .jump-strip a.is-active {
+        background: rgba(56, 139, 253, 0.45);
+        border-color: rgba(56, 139, 253, 0.8);
+    }
+    list-style: none;
+    padding: 0;
     margin: 0;
-    min-height: 100vh;
-    background: radial-gradient(circle at top, rgba(255, 179, 0, 0.12), transparent 55%), var(--bg);
-    color: var(--text);
-    font-size: 16px;
-    line-height: 1.5;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.jump-list a {
+    display: block;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(56, 139, 253, 0.08);
+    color: #e6edf3;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.jump-list a:hover,
+.jump-list a:focus {
+    background: rgba(56, 139, 253, 0.2);
+    border-color: rgba(56, 139, 253, 0.4);
+    transform: translateX(4px);
+}
+
+.layout .content-area {
     display: flex;
     flex-direction: column;
+    gap: 2rem;
 }
 
 .site-header {
@@ -52,7 +100,7 @@ body {
     color: var(--muted);
 }
 
-.content {
+.content-area {
     flex: 1;
     width: min(1080px, 100%);
     margin: 0 auto 3rem;
@@ -129,6 +177,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+
 .channel-card {
     background: linear-gradient(135deg, rgba(255, 179, 0, 0.14), rgba(17, 17, 17, 0.8));
     border: 1px solid var(--border);
@@ -137,7 +186,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    min-height: 150px;
+    min-height: 120px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -148,6 +197,13 @@ body {
 }
 
 .channel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.channel-meta {
     display: flex;
     align-items: baseline;
     gap: 0.75rem;
@@ -165,8 +221,36 @@ body {
     text-transform: capitalize;
 }
 
-.channel-link-wrapper {
-    margin: 0;
+.toggle-links {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    padding: 0.4rem 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.toggle-links:hover,
+.toggle-links:focus-visible {
+    background: rgba(56, 139, 253, 0.2);
+    border-color: rgba(56, 139, 253, 0.6);
+    transform: translateY(-1px);
+}
+
+.channel-links {
+    border-top: 1px solid rgba(240, 246, 252, 0.12);
+    padding-top: 0.5rem;
+}
+
+.links-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
 }
 
 .channel-link {
@@ -176,31 +260,40 @@ body {
     font-weight: 600;
     color: inherit;
     text-decoration: none;
-    padding: 0.5rem 0;
-    position: relative;
+    padding: 0.35rem 0;
+    border-bottom: 1px dashed rgba(240, 246, 252, 0.1);
 }
 
-.channel-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.2s ease;
+.channel-link:last-child {
+    border-bottom: none;
 }
 
-.channel-link:hover::after,
-.channel-link:focus-visible::after {
-    transform: scaleX(1);
+.channel-link:hover,
+.channel-link:focus-visible {
+    color: var(--accent);
 }
 
 .channel-link.is-empty {
     color: var(--muted);
     cursor: not-allowed;
+}
+
+.channel-card.has-links.is-collapsed .channel-links {
+    display: none;
+}
+
+.channel-card.has-links.is-expanded .channel-links {
+    display: block;
+}
+
+.channel-card.has-links.is-collapsed .toggle-links::after {
+    content: " ▼";
+    font-size: 0.75rem;
+}
+
+.channel-card.has-links.is-expanded .toggle-links::after {
+    content: " ▲";
+    font-size: 0.75rem;
 }
 
 .empty-state {
@@ -216,5 +309,22 @@ body {
 
     .channel-card {
         padding: 1rem;
+    }
+}
+
+@media (max-width: 900px) {
+    main.layout {
+        padding: 1.5rem 1rem 2.5rem;
+    }
+
+    .content-area {
+        margin: 0;
+        padding: 0;
+    }
+
+    .jump-strip {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 0.4rem;
     }
 }
