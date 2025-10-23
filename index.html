@@ -7,22 +7,32 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="site-header">
-        <h1>YouTube Channel Directory</h1>
-        <p class="site-tagline">Quickly jump to any saved channel using its number or name.</p>
-    </header>
-    <main class="content">
-        <section class="search-panel" aria-labelledby="search-heading">
-            <h2 id="search-heading">Find a channel</h2>
-            <label class="search-label" for="search-input">Search by number or name</label>
-            <input id="search-input" class="search-input" type="search" placeholder="e.g. 0 or computer" autocomplete="off">
-            <div class="search-actions">
-                <button id="clear-button" type="button">Clear</button>
+    <main class="layout">
+        <aside class="jump-panel" aria-labelledby="jump-heading">
+            <h2 id="jump-heading">Jump to ID</h2>
+            <nav aria-label="Channel number shortcuts">
+                <ul class="jump-list">
+                    <li><a href="#group-0">0-49</a></li>
+                    <li><a href="#group-50">50-99</a></li>
+                    <li><a href="#group-100">100-149</a></li>
+                    <li><a href="#group-150">150-199</a></li>
+                    <li><a href="#group-200">200-299</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <section class="content" aria-labelledby="search-heading">
+            <div class="search-panel">
+                <h2 id="search-heading">Find a channel</h2>
+                <label class="search-label" for="search-input">Search by number or name</label>
+                <input id="search-input" class="search-input" type="search" placeholder="e.g. 0 or computer" autocomplete="off">
+                <div class="search-actions">
+                    <button id="clear-button" type="button">Clear</button>
+                </div>
             </div>
-        </section>
-        <section class="channels" aria-labelledby="channels-heading">
-            <h2 id="channels-heading">Saved channels</h2>
-            <div id="channels-grid" class="channels-grid" role="list" aria-live="polite"></div>
+            <section class="channels" aria-labelledby="channels-heading">
+                <h2 id="channels-heading">Saved channels</h2>
+                <div id="channels-grid" class="channels-grid" role="list" aria-live="polite"></div>
+            </section>
         </section>
     </main>
     <template id="channel-card-template">
