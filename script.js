@@ -122,6 +122,8 @@ if (!searchInput || !clearButton || !grid || !template) {
 
 const normalise = (text) => text.trim().toLowerCase();
 
+const shouldOpenInNewTab = () => !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 const toVideosUrl = (url) => {
     if (!url) {
         return url;
@@ -177,8 +179,13 @@ const renderChannels = (items) => {
 
                 const anchor = document.createElement("a");
                 anchor.className = "channel-link";
-                anchor.target = "_blank";
-                anchor.rel = "noopener";
+                if (shouldOpenInNewTab()) {
+                    anchor.target = "_blank";
+                    anchor.rel = "noopener";
+                } else {
+                    anchor.removeAttribute("target");
+                    anchor.removeAttribute("rel");
+                }
                 anchor.textContent = entry.name || `Channel ${index + 1}`;
                 anchor.href = toVideosUrl(entry.url);
                 anchor.setAttribute(
@@ -205,11 +212,20 @@ const renderChannels = (items) => {
             linkEl.href = toVideosUrl(channel.url);
             linkEl.classList.remove("is-empty");
             linkEl.setAttribute("aria-label", `Open ${channel.label} on YouTube`);
+            if (shouldOpenInNewTab()) {
+                linkEl.target = "_blank";
+                linkEl.rel = "noopener";
+            } else {
+                linkEl.removeAttribute("target");
+                linkEl.removeAttribute("rel");
+            }
         } else {
             linkEl.textContent = "Link coming soon";
             linkEl.href = "#";
             linkEl.classList.add("is-empty");
             linkEl.setAttribute("aria-label", `${channel.label} link coming soon`);
+            linkEl.removeAttribute("target");
+            linkEl.removeAttribute("rel");
         }
 
         fragment.appendChild(clone);
