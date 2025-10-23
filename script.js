@@ -461,13 +461,13 @@ const renderChannels = (items) => {
         }
 
         if (linkCount > 0) {
-            linksPanel.hidden = true;
+            linksPanel.hidden = false;
             card.classList.add("has-links");
-            card.classList.add("is-collapsed");
-            card.classList.remove("is-expanded");
+            card.classList.add("is-expanded");
+            card.classList.remove("is-collapsed");
             toggleBtn.hidden = false;
-            toggleBtn.textContent = "Show links";
-            toggleBtn.setAttribute("aria-expanded", "false");
+            toggleBtn.textContent = "Hide links";
+            toggleBtn.setAttribute("aria-expanded", "true");
 
             toggleBtn.addEventListener("click", () => {
                 const expanded = card.classList.toggle("is-expanded");
@@ -532,6 +532,23 @@ clearButton.addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", () => {
     renderChannels(channels);
     initMobileHandlers();
+
+    for (const button of modalCloseButtons) {
+        button.addEventListener("click", () => {
+            closeModal();
+        });
+    }
+
+    modal.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeModal();
+    });
+
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
 
     jumpStrip.addEventListener("click", (event) => {
         const link = event.target.closest("a[data-channel-id]");
