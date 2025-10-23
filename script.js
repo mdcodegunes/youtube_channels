@@ -316,6 +316,50 @@ const openModal = (channel) => {
         });
 
         modalLinks.appendChild(fragment);
+        if (isAndroid) {
+            modalLinks.querySelectorAll(".channel-link").forEach((anchor) => {
+                anchor.addEventListener("click", (event) => {
+                    const fallbackUrl = anchor.dataset.fallbackUrl;
+                    if (!fallbackUrl) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const intentUrl = buildIntentUrl(fallbackUrl);
+                    const fallbackDelay = 900;
+                    let fallbackTimer;
+
+                    const cleanUp = () => {
+                        document.removeEventListener("visibilitychange", handleVisibilityChange);
+                        window.removeEventListener("pagehide", handlePageHide);
+                    };
+
+                    const handleVisibilityChange = () => {
+                        if (document.visibilityState === "hidden") {
+                            clearTimeout(fallbackTimer);
+                        }
+                        cleanUp();
+                    };
+
+                    const handlePageHide = () => {
+                        clearTimeout(fallbackTimer);
+                        cleanUp();
+                    };
+
+                    fallbackTimer = window.setTimeout(() => {
+                        cleanUp();
+                        if (document.visibilityState === "visible") {
+                            window.location.href = fallbackUrl;
+                        }
+                    }, fallbackDelay);
+
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                    window.addEventListener("pagehide", handlePageHide, { once: true });
+
+                    window.location.href = intentUrl;
+                });
+            });
+        }
     } else {
         const empty = document.createElement("p");
         empty.className = "channel-modal__empty";
