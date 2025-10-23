@@ -5,6 +5,7 @@
     --muted: #94a3b8;
     --border: rgba(148, 163, 184, 0.25);
     --accent: #3b82f6;
+    --app-version-label: "v2025.10.23";
 }
 
 main.layout {
@@ -97,6 +98,21 @@ body {
 dialog::backdrop {
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(4px);
+}
+
+body::after {
+    content: "Build " var(--app-version-label);
+    position: fixed;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(56, 139, 253, 0.35);
+    color: rgba(226, 232, 240, 0.85);
+    pointer-events: none;
 }
 
 .site-header {
@@ -317,6 +333,12 @@ dialog::backdrop {
 }
 
 @media (max-width: 640px) {
+    body::after {
+        right: 0.5rem;
+        bottom: 0.5rem;
+        font-size: 0.7rem;
+    }
+
     main.layout {
         padding: 1.5rem 1rem 2rem;
     }
