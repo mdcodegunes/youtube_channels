@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YouTube Channel Directory</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <h1>YouTube Channel Directory</h1>
+        <p class="site-tagline">Quickly jump to any saved channel using its number or name.</p>
+    </header>
+    <main class="content">
+        <section class="search-panel" aria-labelledby="search-heading">
+            <h2 id="search-heading">Find a channel</h2>
+            <label class="search-label" for="search-input">Search by number or name</label>
+            <input id="search-input" class="search-input" type="search" placeholder="e.g. 0 or computer" autocomplete="off">
+            <div class="search-actions">
+                <button id="clear-button" type="button">Clear</button>
+            </div>
+        </section>
+        <section class="channels" aria-labelledby="channels-heading">
+            <h2 id="channels-heading">Saved channels</h2>
+            <div id="channels-grid" class="channels-grid" role="list" aria-live="polite"></div>
+        </section>
+    </main>
+    <template id="channel-card-template">
+        <article class="channel-card" role="listitem">
+            <header class="channel-header">
+                <span class="channel-number" aria-label="Channel number"></span>
+                <h3 class="channel-title"></h3>
+            </header>
+            <p class="channel-link-wrapper">
+                <a class="channel-link" target="_blank" rel="noopener"></a>
+            </p>
+        </article>
+    </template>
+    <script src="script.js" type="module"></script>
+</body>
+</html>
