@@ -124,6 +124,8 @@ const normalise = (text) => text.trim().toLowerCase();
 
 const shouldOpenInNewTab = () => !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+const isAndroid = /Android/i.test(navigator.userAgent);
+
 const toVideosUrl = (url) => {
     if (!url) {
         return url;
@@ -142,6 +144,42 @@ const toVideosUrl = (url) => {
     }
 
     return url;
+};
+
+const buildIntentUrl = (url) => {
+    const stripped = url.replace(/^https?:\/\//, "");
+    const fallback = encodeURIComponent(url);
+    return `intent://${stripped}#Intent;scheme=https;package=com.google.android.youtube;S.browser_fallback_url=${fallback};end`;
+};
+
+let mobileHandlersInitialized = false;
+
+const initMobileHandlers = () => {
+    if (!isAndroid || mobileHandlersInitialized) {
+        return;
+    }
+
+    grid.addEventListener("click", (event) => {
+        const target = event.target.closest(".channel-link");
+        if (!target) {
+            return;
+        }
+
+        const fallbackUrl = target.dataset.fallbackUrl;
+        if (!fallbackUrl) {
+            return;
+        }
+
+        event.preventDefault();
+        const intentUrl = buildIntentUrl(fallbackUrl);
+        window.location.href = intentUrl;
+
+        setTimeout(() => {
+            window.location.href = fallbackUrl;
+        }, 800);
+    });
+
+    mobileHandlersInitialized = true;
 };
 
 const renderChannels = (items) => {
@@ -187,7 +225,9 @@ const renderChannels = (items) => {
                     anchor.removeAttribute("rel");
                 }
                 anchor.textContent = entry.name || `Channel ${index + 1}`;
-                anchor.href = toVideosUrl(entry.url);
+                const finalUrl = toVideosUrl(entry.url);
+                anchor.href = finalUrl;
+                anchor.dataset.fallbackUrl = finalUrl;
                 anchor.setAttribute(
                     "aria-label",
                     `Open ${(entry.name || channel.label).trim()} on YouTube`
@@ -209,7 +249,9 @@ const renderChannels = (items) => {
             }
         } else if (channel.url) {
             linkEl.textContent = "Open channel";
-            linkEl.href = toVideosUrl(channel.url);
+            const finalUrl = toVideosUrl(channel.url);
+            linkEl.href = finalUrl;
+            linkEl.dataset.fallbackUrl = finalUrl;
             linkEl.classList.remove("is-empty");
             linkEl.setAttribute("aria-label", `Open ${channel.label} on YouTube`);
             if (shouldOpenInNewTab()) {
@@ -226,12 +268,14 @@ const renderChannels = (items) => {
             linkEl.setAttribute("aria-label", `${channel.label} link coming soon`);
             linkEl.removeAttribute("target");
             linkEl.removeAttribute("rel");
+            delete linkEl.dataset.fallbackUrl;
         }
 
         fragment.appendChild(clone);
     }
 
     grid.appendChild(fragment);
+    initMobileHandlers();
 };
 
 const handleSearch = () => {
@@ -260,6 +304,7 @@ clearButton.addEventListener("click", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     renderChannels(channels);
+    initMobileHandlers();
 });
 
 export { channels, renderChannels };
