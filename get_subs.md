@@ -26,12 +26,17 @@
     });
 
   console.table(rows);
-  const plain = rows.map(({ url }) => url).join('\n');
+  const indexed = rows
+    .map(({ name, url }, index) => `${index}\t'${name ?? ""}'\t'${url}'`)
+    .join('\n');
+
+  console.info(indexed);
   try {
-    copy(plain);
-    console.info('Copied channel URLs to clipboard.');
-  } catch {
-    console.warn('Clipboard copy failed; URLs are listed above.');
+    copy(indexed);
+    console.info('Copied indexed list to clipboard.');
+  } catch (error) {
+    console.warn('Clipboard copy failed; see console output.');
   }
+  console.info('Channel URLs listed above; clipboard copy disabled.');
   return rows;
 })();
