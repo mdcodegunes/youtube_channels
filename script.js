@@ -565,7 +565,7 @@ const channels = [
         id: 99,
         label: "languages",
         url: "",
-        links: [
+        links: [ 
             { name: "Learn German Fast", url: "https://www.youtube.com/@LearnGermanFast" },
             { name: "longua.org", url: "https://www.youtube.com/@longuaorg" },
             { name: "Dein Sprachcoach", url: "https://www.youtube.com/@DeinSprachcoach" },
